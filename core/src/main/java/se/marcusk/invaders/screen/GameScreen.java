@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import se.marcusk.invaders.Invaders;
 import se.marcusk.invaders.entity.Plane;
+import se.marcusk.invaders.entity.Rocket;
 
 /**
  * TODO: Move Sprites to entities folder:
@@ -40,12 +41,11 @@ public class GameScreen implements Screen {
     Texture rocketTexture;
 
     Array<Sprite> ufoSprites;
-    Array<Sprite> rocketSprites;
 
     Rectangle ufoRectangle;
-    Rectangle rocketRectangle;
 
     Plane plane;
+    Array<Rocket> rockets;
 
     int wave;
     int ufoCount;
@@ -64,11 +64,11 @@ public class GameScreen implements Screen {
         rocketTexture = new Texture("rocket.png");
 
         plane = new Plane(planeTexture, worldWidth);
+        rockets = new Array<>();
+
         ufoRectangle = new Rectangle();
-        rocketRectangle = new Rectangle();
 
         ufoSprites = new Array<>();
-        rocketSprites = new Array<>();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         input();
         plane.update(worldWidth);
-        rocketLogic();
+        updatePlayerRockets();
         draw();
     }
 
@@ -98,19 +98,16 @@ public class GameScreen implements Screen {
         }
     }
 
-    private void rocketLogic() {
+    private void updatePlayerRockets() {
         float worldHeight = game.getViewport().getWorldHeight();
         float delta = Gdx.graphics.getDeltaTime();
 
-        for (int i = rocketSprites.size - 1; i >= 0; i--) {
-            Sprite rocketSprite = rocketSprites.get(i);
+        for (int i = rockets.size - 1; i >= 0; i--) {
+            Rocket rocket = rockets.get(i);
+            rocket.update(delta);
 
-            rocketSprite.translateY(5f * delta);
-            //TODO: set rocketRectangle for collision logic
-
-            // Remove rocket if it leaves the screen
-            if (rocketSprite.getY() > game.getViewport().getWorldHeight()) {
-                rocketSprites.removeIndex(i);
+            if (rocket.isOffScreen(worldHeight)) {
+                rockets.removeIndex(i);
             }
         }
     }
@@ -135,7 +132,7 @@ public class GameScreen implements Screen {
             ufo.draw(game.getBatch());
         }
 
-        for (Sprite rocket: rocketSprites) {
+        for (Rocket rocket: rockets) {
             rocket.draw(game.getBatch());
         }
 
@@ -157,14 +154,7 @@ public class GameScreen implements Screen {
     }
 
     private void createRocket() {
-        float rocketWidth = 1;
-        float rocketHeight = 1;
-
-        Sprite rocketSprite = new Sprite(rocketTexture);
-        rocketSprite.setSize(rocketWidth, rocketHeight);
-        rocketSprite.setX(plane.getX());
-        rocketSprite.setY(plane.getY());
-        rocketSprites.add(rocketSprite);
+        rockets.add(new Rocket(rocketTexture, plane.getX(), plane.getY()));
         rocketCount--;
     }
 
