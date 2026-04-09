@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import se.marcusk.invaders.Invaders;
+import se.marcusk.invaders.entity.Plane;
 
 /**
  * TODO: Move Sprites to entities folder:
@@ -30,19 +31,21 @@ import se.marcusk.invaders.Invaders;
 
 public class GameScreen implements Screen {
     private final Invaders game;
+    private float worldWidth;
+    private float worldHeight;
 
     Texture backgroundTexture;
     Texture planeTexture;
     Texture ufoTexture;
     Texture rocketTexture;
 
-    Sprite planeSprite;
     Array<Sprite> ufoSprites;
     Array<Sprite> rocketSprites;
 
-    Rectangle planeRectangle;
     Rectangle ufoRectangle;
     Rectangle rocketRectangle;
+
+    Plane plane;
 
     int wave;
     int ufoCount;
@@ -50,6 +53,9 @@ public class GameScreen implements Screen {
 
     public GameScreen(Invaders game) {
         this.game = game;
+        worldWidth = game.getViewport().getWorldWidth();
+        worldHeight = game.getViewport().getWorldHeight();
+
         ufoCount = 0;
         rocketCount = 10;
         backgroundTexture = new Texture("background.png");
@@ -57,12 +63,7 @@ public class GameScreen implements Screen {
         ufoTexture = new Texture("ufo32.png");
         rocketTexture = new Texture("rocket.png");
 
-        planeSprite = new Sprite(planeTexture);
-        planeSprite.setSize(1, 1);
-        planeSprite.setX(game.getViewport().getWorldWidth() / 2);
-        planeSprite.setY(2);
-
-        planeRectangle = new Rectangle();
+        plane = new Plane(planeTexture, worldWidth);
         ufoRectangle = new Rectangle();
         rocketRectangle = new Rectangle();
 
@@ -76,35 +77,25 @@ public class GameScreen implements Screen {
     @Override
     public void render(float delta) {
         input();
-        planeLogic();
+        plane.update(worldWidth);
         rocketLogic();
         draw();
     }
 
     private void input() {
-        float speed = 8f;
         float delta = Gdx.graphics.getDeltaTime();
 
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            planeSprite.translateX(speed * delta);
+            plane.moveRight(delta);
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            planeSprite.translateX(-speed * delta);
+            plane.moveLeft(delta);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             if(rocketCount > 0) {
                 createRocket();
             }
         }
-    }
-
-    private void planeLogic() {
-        float worldWidth = game.getViewport().getWorldWidth();
-        float planeWidth = planeSprite.getWidth();
-        float planeHeight = planeSprite.getHeight();
-
-        planeSprite.setX(MathUtils.clamp(planeSprite.getX(), 0, worldWidth - planeWidth));
-        planeRectangle.set(planeSprite.getX(), planeSprite.getY(), planeWidth, planeHeight);
     }
 
     private void rocketLogic() {
@@ -135,7 +126,7 @@ public class GameScreen implements Screen {
         float worldHeight = game.getViewport().getWorldHeight();
 
         game.getBatch().draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
-        planeSprite.draw(game.getBatch());
+        plane.getSprite().draw(game.getBatch());
 
         game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5F);
         game.getFont().draw(game.getBatch(), "Rockets: " + rocketCount, 2, 0.5F);
@@ -171,8 +162,8 @@ public class GameScreen implements Screen {
 
         Sprite rocketSprite = new Sprite(rocketTexture);
         rocketSprite.setSize(rocketWidth, rocketHeight);
-        rocketSprite.setX(planeSprite.getX());
-        rocketSprite.setY(planeSprite.getY());
+        rocketSprite.setX(plane.getX());
+        rocketSprite.setY(plane.getY());
         rocketSprites.add(rocketSprite);
         rocketCount--;
     }
