@@ -5,30 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import se.marcusk.invaders.Invaders;
 import se.marcusk.invaders.entity.Plane;
 import se.marcusk.invaders.entity.Rocket;
-
-/**
- * TODO: Move Sprites to entities folder:
- *
- * *Entities should:
- *
- * Store their own sprite
- * Handle their own movement logic
- * Optionally expose a Rectangle for collision
- *
- *  * GameScreen should:
- *
- *  Handle spawning
- *  Call update() on entities
- *  Call draw()
- * */
+import se.marcusk.invaders.entity.Ufo;
 
 public class GameScreen implements Screen {
     private final Invaders game;
@@ -40,12 +22,9 @@ public class GameScreen implements Screen {
     Texture ufoTexture;
     Texture rocketTexture;
 
-    Array<Sprite> ufoSprites;
-
-    Rectangle ufoRectangle;
-
     Plane plane;
     Array<Rocket> rockets;
+    Array<Ufo> ufos;
 
     int wave;
     int ufoCount;
@@ -55,9 +34,9 @@ public class GameScreen implements Screen {
         this.game = game;
         worldWidth = game.getViewport().getWorldWidth();
         worldHeight = game.getViewport().getWorldHeight();
-
         ufoCount = 0;
         rocketCount = 10;
+
         backgroundTexture = new Texture("background.png");
         planeTexture = new Texture("plane32.png");
         ufoTexture = new Texture("ufo32.png");
@@ -65,10 +44,10 @@ public class GameScreen implements Screen {
 
         plane = new Plane(planeTexture, worldWidth);
         rockets = new Array<>();
+        ufos = new Array<>();
 
-        ufoRectangle = new Rectangle();
-
-        ufoSprites = new Array<>();
+        //TODO: decide how ufos should be generated
+        createUfo();
     }
 
     @Override
@@ -128,7 +107,7 @@ public class GameScreen implements Screen {
         game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5F);
         game.getFont().draw(game.getBatch(), "Rockets: " + rocketCount, 2, 0.5F);
 
-        for (Sprite ufo: ufoSprites) {
+        for (Ufo ufo: ufos) {
             ufo.draw(game.getBatch());
         }
 
@@ -140,17 +119,7 @@ public class GameScreen implements Screen {
     }
 
     private void createUfo() {
-        float ufoWidth = 1;
-        float ufoHeight = 1;
-        float worldWidth = game.getViewport().getWorldWidth();
-        float worldHeight = game.getViewport().getWorldHeight();
-
-        Sprite ufoSprite = new Sprite(ufoTexture);
-        ufoSprite.setSize(ufoWidth, ufoHeight);
-        ufoSprite.setX(MathUtils.random(0F, worldWidth - ufoWidth));
-        ufoSprite.setY(worldHeight -2); //TODO: decide where and if they show drop down to this position
-        ufoSprites.add(ufoSprite);
-        ufoCount++;
+        ufos.add(new Ufo(ufoTexture, worldWidth, worldHeight));
     }
 
     private void createRocket() {
