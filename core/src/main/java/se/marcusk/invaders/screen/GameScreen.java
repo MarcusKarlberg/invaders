@@ -51,12 +51,10 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void show() {}
-
-    @Override
     public void render(float delta) {
         input();
         plane.update(worldWidth);
+        updateUfos(delta);
         updatePlayerRockets();
         draw();
     }
@@ -66,14 +64,20 @@ public class GameScreen implements Screen {
 
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             plane.moveRight(delta);
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+        } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             plane.moveLeft(delta);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if(rocketCount > 0) {
+            if (rocketCount > 0) {
                 createRocket();
             }
+        }
+    }
+
+    private void updateUfos(float delta) {
+        for (int i = ufos.size - 1; i >= 0; i--) {
+            Ufo ufo = ufos.get(i);
+            ufo.update(delta);
         }
     }
 
@@ -87,6 +91,17 @@ public class GameScreen implements Screen {
 
             if (rocket.isOffScreen(worldHeight)) {
                 rockets.removeIndex(i);
+                continue;
+            }
+
+            for (int u = ufos.size - 1; u >= 0; u--) {
+                Ufo ufo = ufos.get(u);
+
+                if (rocket.getHitBox().overlaps(ufo.getHitBox())) {
+                    rockets.removeIndex(i);
+                    ufos.removeIndex(u);
+                    break;
+                }
             }
         }
     }
@@ -107,11 +122,11 @@ public class GameScreen implements Screen {
         game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5F);
         game.getFont().draw(game.getBatch(), "Rockets: " + rocketCount, 2, 0.5F);
 
-        for (Ufo ufo: ufos) {
+        for (Ufo ufo : ufos) {
             ufo.draw(game.getBatch());
         }
 
-        for (Rocket rocket: rockets) {
+        for (Rocket rocket : rockets) {
             rocket.draw(game.getBatch());
         }
 
@@ -133,15 +148,19 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void pause() {
+    public void show() {}
 
+    @Override
+    public void pause() {
     }
 
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     @Override
-    public void hide() {}
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

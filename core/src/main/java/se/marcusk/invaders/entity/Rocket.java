@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Rocket {
     Sprite sprite;
-    Rectangle rectangle;
+    Rectangle hitBox;
 
     private final float speed = 5f;
 
@@ -19,21 +19,21 @@ public class Rocket {
         sprite.setSize(rocketWidth, rocketHeight);
         sprite.setX(x);
         sprite.setY(y);
-        rectangle = new Rectangle();
-        updateRectangle();
+        hitBox = new Rectangle();
+        updateHitBox();
     }
 
     public Sprite getSprite() {
         return sprite;
     }
 
-    public Rectangle getRectangle() {
-        return rectangle;
+    public Rectangle getHitBox() {
+        return hitBox;
     }
 
     public void update(float delta) {
         sprite.translateY(speed * delta);
-        updateRectangle();
+        updateHitBox();
     }
 
     public boolean isOffScreen(float worldHeight) {
@@ -44,8 +44,9 @@ public class Rocket {
         sprite.draw(batch);
     }
 
-    private void updateRectangle() {
-        rectangle.set(sprite.getX(), sprite.getY(),
-            sprite.getWidth(), sprite.getHeight());
+    private void updateHitBox() {
+        // Tuned for rocket sprite
+        hitBox.set(sprite.getX() + 0.45f, sprite.getY() + 0.2f,
+            0.1f, 0.5f);
     }
 }

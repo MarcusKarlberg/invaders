@@ -11,7 +11,7 @@ public class Ufo {
     float height = 1;
 
     Sprite sprite;
-    Rectangle rectangle;
+    Rectangle hitBox;
 
     public Ufo(Texture texture, float worldWidth, float worldHeight) {
         sprite = new Sprite(texture);
@@ -19,10 +19,28 @@ public class Ufo {
         sprite.setX(MathUtils.random(0F, worldWidth - width));
         sprite.setY(worldHeight -2);
 
-        rectangle = new Rectangle();
+        hitBox = new Rectangle();
     }
 
-    //TODO: add movement and collision logic
+    public void update(float delta) {
+        updateHitbox();
+    }
+
+    private void updateHitbox() {
+        float shrink = 0.2f; // 20% smaller
+
+        float w = sprite.getWidth() * (1f - shrink);
+        float h = sprite.getHeight() * (1f - shrink);
+
+        float x = sprite.getX() + (sprite.getWidth() - w) / 2f;
+        float y = sprite.getY() + (sprite.getHeight() - h) / 2f;
+
+        hitBox.set(x, y, w, h);
+    }
+
+    public Rectangle getHitBox() {
+        return hitBox;
+    }
 
     public void draw(SpriteBatch batch) {
         sprite.draw(batch);
