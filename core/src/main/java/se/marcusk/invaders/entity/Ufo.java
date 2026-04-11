@@ -7,8 +7,14 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
 public class Ufo {
-    float width = 1;
-    float height = 1;
+    private final float width = 1;
+    private final float height = 1;
+    private final float speed = 3;
+    private float direction = 1f;
+    private boolean dropping = true;
+    private final float dropDistance = 2f; // how far it should drop
+    private final float startY;
+    private float rotation = 90f;
 
     Sprite sprite;
     Rectangle hitBox;
@@ -17,13 +23,42 @@ public class Ufo {
         sprite = new Sprite(texture);
         sprite.setSize(width, height);
         sprite.setX(MathUtils.random(0F, worldWidth - width));
-        sprite.setY(worldHeight -2);
+        sprite.setY(worldHeight);
+        sprite.setOriginCenter();
+        startY = sprite.getY();
 
         hitBox = new Rectangle();
     }
 
-    public void update(float delta) {
+    public void update(float delta, float worldWidth, float worldHeight) {
+        updateMovement(delta, worldWidth);
         updateHitbox();
+    }
+
+    private void updateMovement(float delta, float worldWidth) {
+
+        if (dropping) {
+            sprite.translateY(-speed * delta);
+
+            if (sprite.getY() <= startY - dropDistance) {
+                dropping = false;
+            }
+        }
+        // Sideways movement
+        sprite.translateX(speed * direction * delta);
+        sprite.rotate(rotation * delta);
+
+        if (sprite.getX() <= 0) {
+            sprite.setX(0);
+            rotation = 90f;
+            direction = 1f;
+        }
+
+        if (sprite.getX() >= worldWidth - sprite.getWidth()) {
+            sprite.setX(worldWidth - sprite.getWidth());
+            rotation = -90f;
+            direction = -1f;
+        }
     }
 
     private void updateHitbox() {

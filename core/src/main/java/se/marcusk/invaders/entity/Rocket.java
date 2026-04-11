@@ -9,7 +9,9 @@ public class Rocket {
     Sprite sprite;
     Rectangle hitBox;
 
-    private final float speed = 5f;
+    private float speed = 0f;
+    private final float acceleration = 10f;
+    private final float maxSpeed = 20f;
 
     public Rocket(Texture texture, float x, float y) {
         float rocketWidth = 1;
@@ -32,6 +34,12 @@ public class Rocket {
     }
 
     public void update(float delta) {
+        // Increase speed over time
+        speed += acceleration * delta;
+
+        if (speed > maxSpeed) {
+            speed = maxSpeed;
+        }
         sprite.translateY(speed * delta);
         updateHitBox();
     }

@@ -77,7 +77,7 @@ public class GameScreen implements Screen {
     private void updateUfos(float delta) {
         for (int i = ufos.size - 1; i >= 0; i--) {
             Ufo ufo = ufos.get(i);
-            ufo.update(delta);
+            ufo.update(delta, worldWidth, worldHeight);
         }
     }
 
