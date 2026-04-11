@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import se.marcusk.invaders.Invaders;
@@ -30,6 +31,11 @@ public class GameScreen implements Screen {
     int wave;
     int ufoCount;
     int rocketCount;
+
+    // camera
+    float shakeTime = 0f;
+    float shakeDuration = 0f;
+    float shakeIntensity = 0f;
 
     public GameScreen(Invaders game) {
         this.game = game;
@@ -61,7 +67,10 @@ public class GameScreen implements Screen {
         updateUfos(delta);
         updatePlayerRockets();
         updateExplosions(delta);
+        renderCameraShake();
+
         draw();
+        resetCamera(); // must be after draw
     }
 
     private void input() {
@@ -106,6 +115,7 @@ public class GameScreen implements Screen {
                     rockets.removeIndex(i);
                     ufos.removeIndex(u);
                     explosions.add(new Explosion(explosionTexture1, explosionTexture2, ufo.getX(), ufo.getY()));
+                    shakeCamera(0.25f, 0.1f);
                     break;
                 }
             }
@@ -155,6 +165,37 @@ public class GameScreen implements Screen {
         }
 
         game.getBatch().end();
+    }
+
+    private void renderCameraShake() {
+        if (shakeTime > 0) {
+            shakeTime -= Gdx.graphics.getDeltaTime();
+
+            float currentIntensity = shakeIntensity * (shakeTime / shakeDuration);
+
+            float offsetX = (MathUtils.random() - 0.5f) * 2f * currentIntensity;
+            float offsetY = (MathUtils.random() - 0.5f) * 2f * currentIntensity;
+
+            game.getViewport().getCamera().position.x += offsetX;
+            game.getViewport().getCamera().position.y += offsetY;
+
+            game.getViewport().getCamera().update();
+        }
+    }
+
+    public void resetCamera() {
+        game.getViewport().getCamera().position.set(
+            worldWidth / 2f,
+            worldHeight / 2f,
+            0
+        );
+        game.getViewport().getCamera().update();
+    }
+
+    public void shakeCamera(float duration, float intensity) {
+        shakeDuration = duration;
+        shakeTime = duration;
+        shakeIntensity = intensity;
     }
 
     private void createUfo() {
