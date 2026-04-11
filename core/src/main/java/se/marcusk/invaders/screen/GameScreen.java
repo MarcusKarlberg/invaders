@@ -8,9 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import se.marcusk.invaders.Invaders;
-import se.marcusk.invaders.entity.Plane;
-import se.marcusk.invaders.entity.Rocket;
-import se.marcusk.invaders.entity.Ufo;
+import se.marcusk.invaders.entity.*;
 
 public class GameScreen implements Screen {
     private final Invaders game;
@@ -21,10 +19,13 @@ public class GameScreen implements Screen {
     Texture planeTexture;
     Texture ufoTexture;
     Texture rocketTexture;
+    Texture explosionTexture1;
+    Texture explosionTexture2;
 
     Plane plane;
     Array<Rocket> rockets;
     Array<Ufo> ufos;
+    Array<Explosion> explosions;
 
     int wave;
     int ufoCount;
@@ -41,10 +42,13 @@ public class GameScreen implements Screen {
         planeTexture = new Texture("plane32.png");
         ufoTexture = new Texture("ufo32.png");
         rocketTexture = new Texture("rocket.png");
+        explosionTexture1 = new Texture("explosion1_32.png");
+        explosionTexture2 = new Texture("explosion2_32.png");
 
         plane = new Plane(planeTexture, worldWidth);
         rockets = new Array<>();
         ufos = new Array<>();
+        explosions = new Array<>();
 
         //TODO: decide how ufos should be generated
         createUfo();
@@ -56,6 +60,7 @@ public class GameScreen implements Screen {
         plane.update(worldWidth);
         updateUfos(delta);
         updatePlayerRockets();
+        updateExplosions(delta);
         draw();
     }
 
@@ -100,23 +105,38 @@ public class GameScreen implements Screen {
                 if (rocket.getHitBox().overlaps(ufo.getHitBox())) {
                     rockets.removeIndex(i);
                     ufos.removeIndex(u);
+                    explosions.add(new Explosion(explosionTexture1, explosionTexture2, ufo.getX(), ufo.getY()));
                     break;
                 }
             }
         }
     }
 
-    private void draw() {
-        ScreenUtils.clear(Color.DARK_GRAY);
+    private void updateExplosions(float delta) {
+        for (int i = explosions.size - 1; i >= 0; i--) {
+            Explosion e = explosions.get(i);
+            if (e.update(delta)) {
+                explosions.removeIndex(i); // remove when finished
+            }
+        }
+    }
 
+    private void draw() {
+        ScreenUtils.clear(Color.BLACK);
         game.getViewport().apply();
-        game.getBatch().setProjectionMatrix(game.getViewport().getCamera().combined);
-        game.getBatch().begin();
 
         float worldWidth = game.getViewport().getWorldWidth();
         float worldHeight = game.getViewport().getWorldHeight();
 
+        // Draw background
+        game.getBatch().setProjectionMatrix(game.getViewport().getCamera().combined);
+        game.getBatch().begin();
         game.getBatch().draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
+        game.getBatch().end();
+
+        // Draw game objects
+        game.getBatch().begin();
+
         plane.getSprite().draw(game.getBatch());
 
         game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5F);
@@ -128,6 +148,10 @@ public class GameScreen implements Screen {
 
         for (Rocket rocket : rockets) {
             rocket.draw(game.getBatch());
+        }
+
+        for (Explosion explosion : explosions) {
+            explosion.draw(game.getBatch());
         }
 
         game.getBatch().end();
@@ -168,5 +192,7 @@ public class GameScreen implements Screen {
         planeTexture.dispose();
         ufoTexture.dispose();
         rocketTexture.dispose();
+        explosionTexture1.dispose();
+        explosionTexture2.dispose();
     }
 }

@@ -80,4 +80,12 @@ public class Ufo {
     public void draw(SpriteBatch batch) {
         sprite.draw(batch);
     }
+
+    public float getX() {
+        return sprite.getX();
+    }
+
+    public float getY() {
+        return sprite.getY();
+    }
 }
