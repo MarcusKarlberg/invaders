@@ -16,47 +16,61 @@ public class GameScreen implements Screen {
     private float worldWidth;
     private float worldHeight;
 
-    Texture backgroundTexture;
-    Texture planeTexture;
-    Texture ufoTexture;
-    Texture rocketTexture;
-    Texture explosionTexture1;
-    Texture explosionTexture2;
+    // Textures
+    private Texture backgroundTexture;
+    private Texture planeTexture;
+    private Texture ufoTexture;
+    private Texture rocketTexture;
 
-    Plane plane;
-    Array<Rocket> rockets;
-    Array<Ufo> ufos;
-    Array<Explosion> explosions;
+    // Explosion frames
+    private Array<Texture> explosionFrames;
 
-    int wave;
-    int ufoCount;
-    int rocketCount;
+    // Entities
+    private Plane plane;
+    private Array<Rocket> rockets;
+    private Array<Ufo> ufos;
+    private Array<Explosion> explosions;
 
-    // camera
-    float shakeTime = 0f;
-    float shakeDuration = 0f;
-    float shakeIntensity = 0f;
+    private int wave;
+    private int rocketCount;
+
+    // Camera shake
+    private float shakeTime = 0f;
+    private float shakeDuration = 0f;
+    private float shakeIntensity = 0f;
 
     public GameScreen(Invaders game) {
         this.game = game;
+
         worldWidth = game.getViewport().getWorldWidth();
         worldHeight = game.getViewport().getWorldHeight();
-        ufoCount = 0;
+
         rocketCount = 10;
 
+        // Load textures
         backgroundTexture = new Texture("background.png");
         planeTexture = new Texture("plane32.png");
         ufoTexture = new Texture("ufo32.png");
         rocketTexture = new Texture("rocket.png");
-        explosionTexture1 = new Texture("explosion1_32.png");
-        explosionTexture2 = new Texture("explosion2_32.png");
 
+        //TODO: use sprite-sheet
+        // Build explosion + smoke frame list
+        explosionFrames = new Array<>();
+        explosionFrames.add(new Texture("explosion1_32.png"));
+        explosionFrames.add(new Texture("explosion2_32.png"));
+        explosionFrames.add(new Texture("smoke-1.png"));
+        explosionFrames.add(new Texture("smoke-2.png"));
+        explosionFrames.add(new Texture("smoke-3.png"));
+        explosionFrames.add(new Texture("smoke-4.png"));
+        explosionFrames.add(new Texture("smoke-5.png"));
+        explosionFrames.add(new Texture("smoke-6.png"));
+
+        // Entities
         plane = new Plane(planeTexture, worldWidth);
         rockets = new Array<>();
         ufos = new Array<>();
         explosions = new Array<>();
 
-        //TODO: decide how ufos should be generated
         createUfo();
     }
 
@@ -65,12 +79,12 @@ public class GameScreen implements Screen {
         input();
         plane.update(worldWidth);
         updateUfos(delta);
-        updatePlayerRockets();
+        updatePlayerRockets(delta);
         updateExplosions(delta);
         renderCameraShake();
 
         draw();
-        resetCamera(); // must be after draw
+        resetCamera();
     }
 
     private void input() {
@@ -81,24 +95,19 @@ public class GameScreen implements Screen {
         } else if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             plane.moveLeft(delta);
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if (rocketCount > 0) {
-                createRocket();
-            }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && rocketCount > 0) {
+            createRocket();
         }
     }
 
     private void updateUfos(float delta) {
-        for (int i = ufos.size - 1; i >= 0; i--) {
-            Ufo ufo = ufos.get(i);
+        for (Ufo ufo : ufos) {
             ufo.update(delta, worldWidth, worldHeight);
         }
     }
 
-    private void updatePlayerRockets() {
-        float worldHeight = game.getViewport().getWorldHeight();
-        float delta = Gdx.graphics.getDeltaTime();
-
+    private void updatePlayerRockets(float delta) {
         for (int i = rockets.size - 1; i >= 0; i--) {
             Rocket rocket = rockets.get(i);
             rocket.update(delta);
@@ -112,10 +121,17 @@ public class GameScreen implements Screen {
                 Ufo ufo = ufos.get(u);
 
                 if (rocket.getHitBox().overlaps(ufo.getHitBox())) {
+
                     rockets.removeIndex(i);
                     ufos.removeIndex(u);
-                    explosions.add(new Explosion(explosionTexture1, explosionTexture2, ufo.getX(), ufo.getY()));
-                    shakeCamera(0.25f, 0.1f);
+
+                    explosions.add(new Explosion(
+                        explosionFrames,
+                        ufo.getX(),
+                        ufo.getY()
+                    ));
+
+                    shakeCamera(0.25f, 0.15f);
                     break;
                 }
             }
@@ -124,9 +140,8 @@ public class GameScreen implements Screen {
 
     private void updateExplosions(float delta) {
         for (int i = explosions.size - 1; i >= 0; i--) {
-            Explosion e = explosions.get(i);
-            if (e.update(delta)) {
-                explosions.removeIndex(i); // remove when finished
+            if (explosions.get(i).update(delta)) {
+                explosions.removeIndex(i);
             }
         }
     }
@@ -135,22 +150,18 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(Color.BLACK);
         game.getViewport().apply();
 
-        float worldWidth = game.getViewport().getWorldWidth();
-        float worldHeight = game.getViewport().getWorldHeight();
+        float w = game.getViewport().getWorldWidth();
+        float h = game.getViewport().getWorldHeight();
 
-        // Draw background
         game.getBatch().setProjectionMatrix(game.getViewport().getCamera().combined);
         game.getBatch().begin();
-        game.getBatch().draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
-        game.getBatch().end();
 
-        // Draw game objects
-        game.getBatch().begin();
+        game.getBatch().draw(backgroundTexture, 0, 0, w, h);
 
         plane.getSprite().draw(game.getBatch());
 
-        game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5F);
-        game.getFont().draw(game.getBatch(), "Rockets: " + rocketCount, 2, 0.5F);
+        game.getFont().draw(game.getBatch(), "Wave: " + wave, 0, 0.5f);
+        game.getFont().draw(game.getBatch(), "Rockets: " + rocketCount, 2, 0.5f);
 
         for (Ufo ufo : ufos) {
             ufo.draw(game.getBatch());
@@ -167,6 +178,12 @@ public class GameScreen implements Screen {
         game.getBatch().end();
     }
 
+    private void shakeCamera(float duration, float intensity) {
+        shakeDuration = duration;
+        shakeTime = duration;
+        shakeIntensity = intensity;
+    }
+
     private void renderCameraShake() {
         if (shakeTime > 0) {
             shakeTime -= Gdx.graphics.getDeltaTime();
@@ -178,24 +195,17 @@ public class GameScreen implements Screen {
 
             game.getViewport().getCamera().position.x += offsetX;
             game.getViewport().getCamera().position.y += offsetY;
-
             game.getViewport().getCamera().update();
         }
     }
 
-    public void resetCamera() {
+    private void resetCamera() {
         game.getViewport().getCamera().position.set(
             worldWidth / 2f,
             worldHeight / 2f,
             0
         );
         game.getViewport().getCamera().update();
-    }
-
-    public void shakeCamera(float duration, float intensity) {
-        shakeDuration = duration;
-        shakeTime = duration;
-        shakeIntensity = intensity;
     }
 
     private void createUfo() {
@@ -212,20 +222,10 @@ public class GameScreen implements Screen {
         game.getViewport().update(width, height, true);
     }
 
-    @Override
-    public void show() {}
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
-    }
+    @Override public void show() {}
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
 
     @Override
     public void dispose() {
@@ -233,7 +233,9 @@ public class GameScreen implements Screen {
         planeTexture.dispose();
         ufoTexture.dispose();
         rocketTexture.dispose();
-        explosionTexture1.dispose();
-        explosionTexture2.dispose();
+
+        for (Texture texture : explosionFrames) {
+            texture.dispose();
+        }
     }
 }
