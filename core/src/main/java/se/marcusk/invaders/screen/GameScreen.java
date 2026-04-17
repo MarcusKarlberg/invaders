@@ -5,6 +5,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -13,23 +15,20 @@ import se.marcusk.invaders.entity.*;
 
 public class GameScreen implements Screen {
     private final Invaders game;
-    private float worldWidth;
-    private float worldHeight;
+    private final float worldWidth;
+    private final float worldHeight;
 
-    // Textures
-    private Texture backgroundTexture;
-    private Texture planeTexture;
-    private Texture ufoTexture;
-    private Texture rocketTexture;
+    private final Texture backgroundTexture;
+    private final Texture planeTexture;
+    private final Texture ufoTexture;
+    private final Texture rocketTexture;
 
-    // Explosion frames
-    private Array<Texture> explosionFrames;
+    private Animation<TextureRegion> explosionAnimation;
 
-    // Entities
-    private Plane plane;
-    private Array<Rocket> rockets;
-    private Array<Ufo> ufos;
-    private Array<Explosion> explosions;
+    private final Plane plane;
+    private final Array<Rocket> rockets;
+    private final Array<Ufo> ufos;
+    private final Array<Explosion> explosions;
 
     private int wave;
     private int rocketCount;
@@ -53,17 +52,7 @@ public class GameScreen implements Screen {
         ufoTexture = new Texture("ufo32.png");
         rocketTexture = new Texture("rocket.png");
 
-        //TODO: use sprite-sheet
-        // Build explosion + smoke frame list
-        explosionFrames = new Array<>();
-        explosionFrames.add(new Texture("explosion1_32.png"));
-        explosionFrames.add(new Texture("explosion2_32.png"));
-        explosionFrames.add(new Texture("smoke-1.png"));
-        explosionFrames.add(new Texture("smoke-2.png"));
-        explosionFrames.add(new Texture("smoke-3.png"));
-        explosionFrames.add(new Texture("smoke-4.png"));
-        explosionFrames.add(new Texture("smoke-5.png"));
-        explosionFrames.add(new Texture("smoke-6.png"));
+        loadExplosionAnimation();
 
         // Entities
         plane = new Plane(planeTexture, worldWidth);
@@ -72,6 +61,30 @@ public class GameScreen implements Screen {
         explosions = new Array<>();
 
         createUfo();
+    }
+
+    private void loadExplosionAnimation() {
+
+        Texture explosionSheet = new Texture("explosion_sheet.png");
+
+        int FRAME_WIDTH = 32;
+        int FRAME_HEIGHT = 32;
+
+        TextureRegion[][] tmp = TextureRegion.split(
+            explosionSheet,
+            FRAME_WIDTH,
+            FRAME_HEIGHT
+        );
+
+        Array<TextureRegion> frames = new Array<>();
+
+        for (int row = 0; row < tmp.length; row++) {
+            for (int col = 0; col < tmp[row].length; col++) {
+                frames.add(tmp[row][col]);   // ✅ store region directly
+            }
+        }
+
+        explosionAnimation = new Animation<>(0.08f, frames);
     }
 
     @Override
@@ -126,7 +139,7 @@ public class GameScreen implements Screen {
                     ufos.removeIndex(u);
 
                     explosions.add(new Explosion(
-                        explosionFrames,
+                        explosionAnimation,
                         ufo.getX(),
                         ufo.getY()
                     ));
@@ -222,10 +235,17 @@ public class GameScreen implements Screen {
         game.getViewport().update(width, height, true);
     }
 
-    @Override public void show() {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void show() {}
+
+    @Override
+    public void pause() {}
+
+    @Override
+    public void resume() {}
+
+    @Override
+    public void hide() {}
 
     @Override
     public void dispose() {
@@ -233,9 +253,5 @@ public class GameScreen implements Screen {
         planeTexture.dispose();
         ufoTexture.dispose();
         rocketTexture.dispose();
-
-        for (Texture texture : explosionFrames) {
-            texture.dispose();
-        }
     }
 }
