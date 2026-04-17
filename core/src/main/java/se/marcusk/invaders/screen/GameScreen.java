@@ -40,13 +40,10 @@ public class GameScreen implements Screen {
 
     public GameScreen(Invaders game) {
         this.game = game;
-
         worldWidth = game.getViewport().getWorldWidth();
         worldHeight = game.getViewport().getWorldHeight();
-
         rocketCount = 10;
 
-        // Load textures
         backgroundTexture = new Texture("background.png");
         planeTexture = new Texture("plane32.png");
         ufoTexture = new Texture("ufo32.png");
@@ -64,9 +61,7 @@ public class GameScreen implements Screen {
     }
 
     private void loadExplosionAnimation() {
-
         Texture explosionSheet = new Texture("explosion_sheet.png");
-
         int FRAME_WIDTH = 32;
         int FRAME_HEIGHT = 32;
 
@@ -75,15 +70,13 @@ public class GameScreen implements Screen {
             FRAME_WIDTH,
             FRAME_HEIGHT
         );
-
         Array<TextureRegion> frames = new Array<>();
 
-        for (int row = 0; row < tmp.length; row++) {
-            for (int col = 0; col < tmp[row].length; col++) {
-                frames.add(tmp[row][col]);   // ✅ store region directly
+        for (TextureRegion[] textureRegions : tmp) {
+            for (TextureRegion textureRegion : textureRegions) {
+                frames.add(textureRegion);
             }
         }
-
         explosionAnimation = new Animation<>(0.08f, frames);
     }
 

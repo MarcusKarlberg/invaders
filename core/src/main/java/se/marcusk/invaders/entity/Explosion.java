@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 public class Explosion {
 
     private final Sprite sprite;
-    private Animation<TextureRegion> animation;
+    private final Animation<TextureRegion> animation;
     private float stateTime = 0f;
 
     public Explosion(Animation<TextureRegion> animation, float x, float y) {
