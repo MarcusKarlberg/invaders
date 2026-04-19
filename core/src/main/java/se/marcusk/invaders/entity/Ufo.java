@@ -88,4 +88,40 @@ public class Ufo {
     public float getY() {
         return sprite.getY();
     }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public float getDirection() {
+        return direction;
+    }
+
+    public boolean isDropping() {
+        return dropping;
+    }
+
+    public float getDropDistance() {
+        return dropDistance;
+    }
+
+    public float getStartY() {
+        return startY;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public Sprite getSprite() {
+        return sprite;
+    }
 }

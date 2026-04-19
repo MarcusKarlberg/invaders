@@ -22,11 +22,13 @@ public class GameScreen implements Screen {
     private final Texture planeTexture;
     private final Texture ufoTexture;
     private final Texture rocketTexture;
+    private final Texture laserTexture;
 
     private Animation<TextureRegion> explosionAnimation;
 
     private final Plane plane;
     private final Array<Rocket> rockets;
+    private final Array<Laser> lasers;
     private final Array<Ufo> ufos;
     private final Array<Explosion> explosions;
 
@@ -48,12 +50,14 @@ public class GameScreen implements Screen {
         planeTexture = new Texture("plane32.png");
         ufoTexture = new Texture("ufo32.png");
         rocketTexture = new Texture("rocket.png");
+        laserTexture = new Texture("laser.png");
 
         loadExplosionAnimation();
 
         // Entities
         plane = new Plane(planeTexture, worldWidth);
         rockets = new Array<>();
+        lasers = new Array<>();
         ufos = new Array<>();
         explosions = new Array<>();
 
@@ -86,6 +90,7 @@ public class GameScreen implements Screen {
         plane.update(worldWidth);
         updateUfos(delta);
         updatePlayerRockets(delta);
+        updateLasers(delta);
         updateExplosions(delta);
         renderCameraShake();
 
@@ -104,12 +109,33 @@ public class GameScreen implements Screen {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && rocketCount > 0) {
             createRocket();
+            //TODO: move lasers somewhere else
+            createLaser();
         }
     }
 
     private void updateUfos(float delta) {
         for (Ufo ufo : ufos) {
             ufo.update(delta, worldWidth, worldHeight);
+        }
+    }
+
+    private void updateLasers(float delta) {
+        for (int i = lasers.size - 1; i >= 0; i--) {
+            Laser laser = lasers.get(i);
+            laser.update(delta);
+
+            if (laser.isOffScreen(worldHeight)) {
+                lasers.removeIndex(i);
+                continue;
+            }
+            if (laser.getHitBox().overlaps(plane.getHitBox())) {
+                shakeCamera(0.25f, 0.15f);
+                lasers.removeIndex(i);
+
+                //TODO: reduce plane life add some effects
+                break;
+            }
         }
     }
 
@@ -177,6 +203,10 @@ public class GameScreen implements Screen {
             rocket.draw(game.getBatch());
         }
 
+        for (Laser laser : lasers) {
+            laser.draw(game.getBatch());
+        }
+
         for (Explosion explosion : explosions) {
             explosion.draw(game.getBatch());
         }
@@ -223,22 +253,36 @@ public class GameScreen implements Screen {
         rocketCount--;
     }
 
+    private void createLaser() {
+        //TODO: should handle multiple ufos
+        lasers.add(new Laser(
+            laserTexture,
+            ufos.get(0).getX() + ufos.get(0).getWidth() / 2f - 0.1f,
+            ufos.get(0).getY()
+        )); // Fire from center of ufo
+
+    }
+
     @Override
     public void resize(int width, int height) {
         game.getViewport().update(width, height, true);
     }
 
     @Override
-    public void show() {}
+    public void show() {
+    }
 
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     @Override
-    public void hide() {}
+    public void hide() {
+    }
 
     @Override
     public void dispose() {
@@ -246,5 +290,6 @@ public class GameScreen implements Screen {
         planeTexture.dispose();
         ufoTexture.dispose();
         rocketTexture.dispose();
+        laserTexture.dispose();
     }
 }

@@ -7,17 +7,19 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Plane {
     Sprite sprite;
-    Rectangle rectangle;
+    Rectangle hitBox;
+    private final float width = 1;
+    private final float height = 1;
 
     float speed = 8f;
 
     public Plane(Texture texture, float worldWidth) {
         sprite = new Sprite(texture);
-        sprite.setSize(1, 1);
+        sprite.setSize(width, height);
         sprite.setX(worldWidth / 2);
         sprite.setY(2);
 
-        rectangle = new Rectangle();
+        hitBox = new Rectangle();
     }
 
     public Sprite getSprite() {
@@ -29,7 +31,15 @@ public class Plane {
         float planeHeight = sprite.getHeight();
 
         sprite.setX(MathUtils.clamp(sprite.getX(), 0, worldWidth - planeWidth));
-        rectangle.set(sprite.getX(), sprite.getY(), planeWidth, planeHeight);
+        updateHitBox();
+    }
+
+    private void updateHitBox() {
+        hitBox.set(sprite.getX(), sprite.getY(), width, height);
+    }
+
+    public Rectangle getHitBox() {
+        return hitBox;
     }
 
     public void moveRight(float delta) {
@@ -46,5 +56,17 @@ public class Plane {
 
     public float getY() {
         return sprite.getY();
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getSpeed() {
+        return speed;
     }
 }
